@@ -1,0 +1,13 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Maven
+target/
+
+# IntelliJ IDEA local files
+/shelf/
+/httpRequests/
+/queries/
+/dataSources/
+/dataSources.local.xml

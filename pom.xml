@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
@@ -10,30 +9,102 @@
   <groupId>com.example</groupId>
   <artifactId>my-blog-back-app</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
-
-  <name>my-blog-back-app</name>
 
   <properties>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <spring.version>6.2.5</spring.version>
+    <spring.data.jdbc.version>3.4.5</spring.data.jdbc.version>
+    <junit.version>5.10.2</junit.version>
   </properties>
 
   <dependencies>
+    <!-- Spring Framework -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <!-- Spring Web -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <!-- Spring Data JDBC -->
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-jdbc</artifactId>
+      <version>${spring.data.jdbc.version}</version>
+    </dependency>
+
+    <!-- JDBC-драйвер PostgreSQL -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.7.5</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- Пул соединений с БД -->
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>6.3.0</version>
+    </dependency>
+
+    <!-- Lombok -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.36</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- JUnit 5 -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>5.10.2</version>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Spring Test Framework -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>${spring.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
+      <!-- Запуск тестов JUnit 5 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
+      </plugin>
+
+      <!-- Компиляция Java -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>21</release>
+          <parameters>true</parameters>
+        </configuration>
       </plugin>
     </plugins>
   </build>

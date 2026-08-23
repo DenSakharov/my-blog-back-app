@@ -3,6 +3,8 @@ package com.example.post;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class PostService {
 
@@ -27,5 +29,32 @@ public class PostService {
         }
 
         return postRepository.save(request);
+    }
+
+    public PostListResponse getPosts(
+            String search,
+            int pageNumber,
+            int pageSize
+    ) {
+        if (pageNumber < 1 || pageSize < 1) {
+            throw new IllegalArgumentException("Invalid pagination parameters");
+        }
+
+        int total = postRepository.countPosts(search);
+
+        int lastPage = Math.max(
+                1,
+                (int) Math.ceil((double) total / pageSize)
+        );
+
+        List<PostResponse> posts =
+                postRepository.findPosts(search, pageNumber, pageSize);
+
+        return new PostListResponse(
+                posts,
+                pageNumber > 1,
+                pageNumber < lastPage,
+                lastPage
+        );
     }
 }

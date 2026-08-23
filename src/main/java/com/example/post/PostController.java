@@ -1,11 +1,13 @@
 package com.example.post;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/posts")
+@RequestMapping({"/api/posts", "/posts"})
 public class PostController {
 
     private final PostService postService;
@@ -29,8 +31,41 @@ public class PostController {
         return postService.getPosts(search, pageNumber, pageSize);
     }
 
+    @GetMapping("/{id}")
+    public PostResponse getPost(@PathVariable long id) {
+        return postService.getById(id);
+    }
+
     @GetMapping("/{id}/image")
-    public ResponseEntity<Void> getImage(@PathVariable long id) {
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<byte[]> getImage(@PathVariable long id) {
+        PostImage image = postService.getImage(id);
+
+        MediaType mediaType = MediaType.parseMediaType(
+                image.contentType()
+        );
+
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .body(image.data());
+    }
+
+    @PutMapping(
+            value = "/{id}/image",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<Void> updateImage(
+            @PathVariable long id,
+            @RequestPart("image") MultipartFile image
+    ) {
+        postService.updateImage(id, image);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}")
+    public PostResponse updatePost(
+            @PathVariable long id,
+            @RequestBody PostUpdateRequest request
+    ) {
+        return postService.update(id, request);
     }
 }

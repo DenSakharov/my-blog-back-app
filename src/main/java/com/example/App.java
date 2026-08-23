@@ -1,6 +1,8 @@
 package com.example;
 
 import com.example.config.AppConfig;
+import com.example.config.DatabaseMigration;
+import jakarta.servlet.MultipartConfigElement;
 import org.apache.catalina.Context;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.startup.Tomcat;
@@ -22,6 +24,12 @@ public class App {
         springContext.setServletContext(context.getServletContext());
         springContext.refresh();
 
+        DatabaseMigration migration =
+                springContext.getBean(DatabaseMigration.class);
+
+        migration.migrate();
+
+
         DispatcherServlet dispatcherServlet =
                 new DispatcherServlet(springContext);
 
@@ -33,6 +41,13 @@ public class App {
 
         wrapper.setLoadOnStartup(1);
         context.addServletMappingDecoded("/", "dispatcher");
+
+        wrapper.setMultipartConfigElement(new MultipartConfigElement(
+                System.getProperty("java.io.tmpdir"),
+                10_000_000,
+                20_000_000,
+                1_000_000
+        ));
 
         tomcat.start();
         tomcat.getServer().await();

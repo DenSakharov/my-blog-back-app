@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class PostRepository {
@@ -125,5 +126,94 @@ public class PostRepository {
                 (resultSet, rowNum) -> resultSet.getString("tag"),
                 postId
         );
+    }
+
+    public PostResponse update(long id, PostUpdateRequest request) {
+        int updatedRows = jdbcTemplate.update(
+                """
+                UPDATE posts
+                SET title = ?, text = ?
+                WHERE id = ?
+                """,
+                request.title(),
+                request.text(),
+                id
+        );
+
+        if (updatedRows == 0) {
+            throw new IllegalArgumentException("Post not found: " + id);
+        }
+
+        jdbcTemplate.update(
+                "DELETE FROM post_tags WHERE post_id = ?",
+                id
+        );
+
+        for (String tag : request.tags()) {
+            jdbcTemplate.update(
+                    """
+                    INSERT INTO post_tags (post_id, tag)
+                    VALUES (?, ?)
+                    """,
+                    id,
+                    tag
+            );
+        }
+
+        return findById(id);
+    }
+
+    public PostResponse findById(long id) {
+        return jdbcTemplate.queryForObject(
+                """
+                SELECT id, title, text
+                FROM posts
+                WHERE id = ?
+                """,
+                (rs, rowNum) -> new PostResponse(
+                        rs.getLong("id"),
+                        rs.getString("title"),
+                        rs.getString("text"),
+                        findTags(id),
+                        0,
+                        0
+                ),
+                id
+        );
+    }
+
+    public int updateImage(
+            long postId,
+            byte[] imageData,
+            String contentType
+    ) {
+        return jdbcTemplate.update(
+                """
+                UPDATE posts
+                SET image_data = ?,
+                    image_content_type = ?
+                WHERE id = ?
+                """,
+                imageData,
+                contentType,
+                postId
+        );
+    }
+
+    public Optional<PostImage> findImageByPostId(long postId) {
+        List<PostImage> images = jdbcTemplate.query(
+                """
+                SELECT image_data, image_content_type
+                FROM posts
+                WHERE id = ?
+                """,
+                (rs, rowNum) -> new PostImage(
+                        rs.getBytes("image_data"),
+                        rs.getString("image_content_type")
+                ),
+                postId
+        );
+
+        return images.stream().findFirst();
     }
 }

@@ -218,4 +218,16 @@ public class PostRepository {
 
         return images.stream().findFirst();
     }
+
+    @Transactional
+    public void delete(long id) {
+        int deletedRows = jdbcTemplate.update(
+                "DELETE FROM posts WHERE id = ?",
+                id
+        );
+
+        if (deletedRows == 0) {
+            throw new IllegalArgumentException("Post not found: " + id);
+        }
+    }
 }

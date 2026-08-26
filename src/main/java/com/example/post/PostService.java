@@ -133,4 +133,13 @@ public class PostService {
                                 "Image not found"
                         ));
     }
+
+    @Transactional
+    public void delete(long id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("Invalid post id");
+        }
+
+        postRepository.delete(id);
+    }
 }

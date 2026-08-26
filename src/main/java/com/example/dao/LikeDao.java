@@ -1,14 +1,14 @@
-package com.example.like;
+package com.example.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class LikeRepository {
+public class LikeDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public LikeRepository(JdbcTemplate jdbcTemplate) {
+    public LikeDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

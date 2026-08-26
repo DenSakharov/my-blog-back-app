@@ -1,5 +1,7 @@
-package com.example.like;
+package com.example.controller;
 
+import com.example.dto.like.LikeResponse;
+import com.example.service.LikeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 

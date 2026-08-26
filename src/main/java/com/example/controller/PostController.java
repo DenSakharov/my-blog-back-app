@@ -1,5 +1,7 @@
-package com.example.post;
+package com.example.controller;
 
+import com.example.dto.post.*;
+import com.example.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

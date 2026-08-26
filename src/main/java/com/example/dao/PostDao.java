@@ -1,5 +1,9 @@
-package com.example.post;
+package com.example.dao;
 
+import com.example.dto.post.PostCreateRequest;
+import com.example.dto.post.PostImage;
+import com.example.model.Post;
+import com.example.dto.post.PostUpdateRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,19 +12,17 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class PostRepository {
+public class PostDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public PostRepository(JdbcTemplate jdbcTemplate) {
+    public PostDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Transactional
-    public PostResponse save(PostCreateRequest request) {
-        Long postId = null;
-        try {
-         postId = jdbcTemplate.queryForObject(
+    public Post save(PostCreateRequest request) {
+        Long postId = jdbcTemplate.queryForObject(
                 """
                 INSERT INTO posts (title, text)
                 VALUES (?, ?)
@@ -30,62 +32,45 @@ public class PostRepository {
                 request.title(),
                 request.text()
         );
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
-
-        String insertTagSql = """
-                INSERT INTO post_tags (post_id, tag)
-                VALUES (?, ?)
-                """;
 
         if (request.tags() != null) {
             for (String tag : request.tags()) {
-                jdbcTemplate.update(insertTagSql, postId, tag);
+                jdbcTemplate.update(
+                        """
+                        INSERT INTO post_tags (post_id, tag)
+                        VALUES (?, ?)
+                        """,
+                        postId,
+                        tag
+                );
             }
         }
 
-        return new PostResponse(
-                postId,
-                request.title(),
-                request.text(),
-                request.tags(),
-                0,
-                0
-        );
+        return findById(postId);
     }
 
-    public List<PostResponse> findPosts(
+    public List<Post> findPosts(
             String search,
             int pageNumber,
             int pageSize
     ) {
         int offset = (pageNumber - 1) * pageSize;
-        String searchPattern = "%" + search + "%";
+        String searchPattern = "%" + (search == null ? "" : search) + "%";
 
         String sql = """
-                SELECT id, title, text
-                FROM posts
-                WHERE title ILIKE ?
-                   OR text ILIKE ?
-                ORDER BY id DESC
-                LIMIT ? OFFSET ?
-                """;
+            SELECT id, title, text,
+                   likes_count, comments_count,
+                   image_content_type
+            FROM posts
+            WHERE title ILIKE ?
+               OR text ILIKE ?
+            ORDER BY id DESC
+            LIMIT ? OFFSET ?
+            """;
 
         return jdbcTemplate.query(
                 sql,
-                (resultSet, rowNum) -> {
-                    long postId = resultSet.getLong("id");
-
-                    return new PostResponse(
-                            postId,
-                            resultSet.getString("title"),
-                            resultSet.getString("text"),
-                            findTags(postId),
-                            0,
-                            0
-                    );
-                },
+                (rs, rowNum) -> mapPost(rs),
                 searchPattern,
                 searchPattern,
                 pageSize,
@@ -94,7 +79,7 @@ public class PostRepository {
     }
 
     public int countPosts(String search) {
-        String searchPattern = "%" + search + "%";
+        String searchPattern = "%" + (search == null ? "" : search) + "%";
 
         String sql = """
                 SELECT COUNT(*)
@@ -129,7 +114,7 @@ public class PostRepository {
     }
 
     @Transactional
-    public PostResponse update(long id, PostUpdateRequest request) {
+    public Post update(long id, PostUpdateRequest request) {
         int updatedRows = jdbcTemplate.update(
                 """
                 UPDATE posts
@@ -150,7 +135,11 @@ public class PostRepository {
                 id
         );
 
-        for (String tag : request.tags()) {
+        List<String> tags = request.tags() == null
+                ? List.of()
+                : request.tags();
+
+        for (String tag : tags) {
             jdbcTemplate.update(
                     """
                     INSERT INTO post_tags (post_id, tag)
@@ -164,21 +153,16 @@ public class PostRepository {
         return findById(id);
     }
 
-    public PostResponse findById(long id) {
+    public Post findById(long id) {
         return jdbcTemplate.queryForObject(
                 """
-                SELECT id, title, text
+                SELECT id, title, text,
+                       likes_count, comments_count,
+                       image_content_type
                 FROM posts
                 WHERE id = ?
                 """,
-                (rs, rowNum) -> new PostResponse(
-                        rs.getLong("id"),
-                        rs.getString("title"),
-                        rs.getString("text"),
-                        findTags(id),
-                        0,
-                        0
-                ),
+                (rs, rowNum) -> mapPost(rs),
                 id
         );
     }
@@ -229,5 +213,21 @@ public class PostRepository {
         if (deletedRows == 0) {
             throw new IllegalArgumentException("Post not found: " + id);
         }
+    }
+
+    private Post mapPost(
+            java.sql.ResultSet rs
+    ) throws java.sql.SQLException {
+        long postId = rs.getLong("id");
+
+        return new Post(
+                postId,
+                rs.getString("title"),
+                rs.getString("text"),
+                findTags(postId),
+                rs.getLong("likes_count"),
+                rs.getLong("comments_count"),
+                rs.getString("image_content_type")
+        );
     }
 }

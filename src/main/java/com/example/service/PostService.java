@@ -1,5 +1,9 @@
-package com.example.post;
+package com.example.service;
 
+import com.example.dao.PostDao;
+import com.example.dto.post.*;
+import com.example.mapper.PostMapper;
+import com.example.model.Post;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,10 +16,12 @@ import java.util.List;
 @Service
 public class PostService {
 
-    private final PostRepository postRepository;
+    private final PostDao postDao;
+    private final PostMapper postMapper;
 
-    public PostService(PostRepository postRepository) {
-        this.postRepository = postRepository;
+    public PostService(PostDao postDao, PostMapper postMapper) {
+        this.postDao = postDao;
+        this.postMapper = postMapper;
     }
 
     @Transactional
@@ -32,7 +38,8 @@ public class PostService {
             throw new IllegalArgumentException("Tags are required");
         }
 
-        return postRepository.save(request);
+        Post post = postDao.save(request);
+        return postMapper.toResponse(post);
     }
 
     public PostListResponse getPosts(
@@ -44,15 +51,18 @@ public class PostService {
             throw new IllegalArgumentException("Invalid pagination parameters");
         }
 
-        int total = postRepository.countPosts(search);
+        int total = postDao.countPosts(search);
 
         int lastPage = Math.max(
                 1,
                 (int) Math.ceil((double) total / pageSize)
         );
 
-        List<PostResponse> posts =
-                postRepository.findPosts(search, pageNumber, pageSize);
+        List<PostResponse> posts = postDao
+                .findPosts(search, pageNumber, pageSize)
+                .stream()
+                .map(postMapper::toResponse)
+                .toList();
 
         return new PostListResponse(
                 posts,
@@ -63,7 +73,8 @@ public class PostService {
     }
 
     public PostResponse getById(long id) {
-        return postRepository.findById(id);
+        Post post = postDao.findById(id);
+        return postMapper.toResponse(post);
     }
 
     @Transactional
@@ -87,7 +98,8 @@ public class PostService {
                 tags
         );
 
-        return postRepository.update(id, updateRequest);
+        Post post = postDao.update(id, updateRequest);
+        return postMapper.toResponse(post);
     }
 
     @Transactional
@@ -103,7 +115,7 @@ public class PostService {
         }
 
         try {
-            int updatedRows = postRepository.updateImage(
+            int updatedRows = postDao.updateImage(
                     postId,
                     image.getBytes(),
                     contentType
@@ -120,7 +132,7 @@ public class PostService {
     }
 
     public PostImage getImage(long postId) {
-        return postRepository.findImageByPostId(postId)
+        return postDao.findImageByPostId(postId)
                 .filter(image ->
                         image.data() != null &&
                                 image.data().length > 0 &&
@@ -140,6 +152,6 @@ public class PostService {
             throw new IllegalArgumentException("Invalid post id");
         }
 
-        postRepository.delete(id);
+        postDao.delete(id);
     }
 }

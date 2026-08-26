@@ -1,15 +1,17 @@
-package com.example.like;
+package com.example.service;
 
+import com.example.dao.LikeDao;
+import com.example.dto.like.LikeResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class LikeService {
 
-    private final LikeRepository likeRepository;
+    private final LikeDao likeDao;
 
-    public LikeService(LikeRepository likeRepository) {
-        this.likeRepository = likeRepository;
+    public LikeService(LikeDao likeDao) {
+        this.likeDao = likeDao;
     }
 
     @Transactional
@@ -18,7 +20,7 @@ public class LikeService {
             throw new IllegalArgumentException("Invalid postId");
         }
 
-        long likesCount = likeRepository.addLike(postId);
+        long likesCount = likeDao.addLike(postId);
         return new LikeResponse(postId, likesCount);
     }
 
@@ -29,7 +31,7 @@ public class LikeService {
 
         return new LikeResponse(
                 postId,
-                likeRepository.getLikesCount(postId)
+                likeDao.getLikesCount(postId)
         );
     }
 }

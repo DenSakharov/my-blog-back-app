@@ -1,4 +1,4 @@
-package com.example.comment;
+package com.example.dto.comment;
 
 public record CommentRequest(
         Long id,

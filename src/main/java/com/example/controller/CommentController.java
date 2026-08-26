@@ -1,5 +1,8 @@
-package com.example.comment;
+package com.example.controller;
 
+import com.example.dto.comment.CommentRequest;
+import com.example.dto.comment.CommentResponse;
+import com.example.service.CommentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,7 +49,7 @@ public class CommentController {
             @PathVariable long commentId,
             @RequestBody CommentRequest request
     ) {
-        return commentService.update(request.postId(), commentId, request);
+        return commentService.update(postId, commentId, request);
     }
 
     @DeleteMapping("/{commentId}")

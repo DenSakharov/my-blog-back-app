@@ -1,21 +1,21 @@
-package com.example.comment;
+package com.example.dao;
 
+import com.example.model.Comment;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public class CommentRepository {
+public class CommentDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public CommentRepository(JdbcTemplate jdbcTemplate) {
+    public CommentDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<CommentResponse> findByPostId(long postId) {
+    public List<Comment> findByPostId(long postId) {
         String sql = """
                 SELECT id, text, post_id
                 FROM comments
@@ -26,7 +26,7 @@ public class CommentRepository {
         return jdbcTemplate.query(sql, this::mapRow, postId);
     }
 
-    public CommentResponse findById(long postId, long commentId) {
+    public Comment findById(long postId, long commentId) {
         String sql = """
                 SELECT id, text, post_id
                 FROM comments
@@ -41,7 +41,7 @@ public class CommentRepository {
         );
     }
 
-    public CommentResponse create(long postId, String text) {
+    public Comment create(long postId, String text) {
         String sql = """
                 INSERT INTO comments (text, post_id)
                 VALUES (?, ?)
@@ -56,21 +56,17 @@ public class CommentRepository {
         );
     }
 
-    public CommentResponse update(
-            long commentId,
-            long postId,
-            String text
-    ) {
+    public Comment update(long postId, long commentId, String text) {
         String sql = """
-        UPDATE comments
-        SET text = ?
-        WHERE id = ? AND post_id = ?
-        RETURNING id, text, post_id
-        """;
+                UPDATE comments
+                SET text = ?
+                WHERE id = ? AND post_id = ?
+                RETURNING id, text, post_id
+                """;
 
         return jdbcTemplate.queryForObject(
                 sql,
-                commentRowMapper,
+                this::mapRow,
                 text,
                 commentId,
                 postId
@@ -86,21 +82,13 @@ public class CommentRepository {
         jdbcTemplate.update(sql, commentId, postId);
     }
 
-    private CommentResponse mapRow(
-            java.sql.ResultSet rs,
-            int rowNum
-    ) throws java.sql.SQLException {
-        return new CommentResponse(
+    private Comment mapRow(java.sql.ResultSet rs, int rowNum)
+            throws java.sql.SQLException {
+
+        return new Comment(
                 rs.getLong("id"),
                 rs.getString("text"),
                 rs.getLong("post_id")
         );
     }
-
-    private final RowMapper<CommentResponse> commentRowMapper =
-            (rs, rowNum) -> new CommentResponse(
-                    rs.getLong("id"),
-                    rs.getString("text"),
-                    rs.getLong("post_id")
-            );
 }

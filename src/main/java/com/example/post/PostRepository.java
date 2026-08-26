@@ -128,6 +128,7 @@ public class PostRepository {
         );
     }
 
+    @Transactional
     public PostResponse update(long id, PostUpdateRequest request) {
         int updatedRows = jdbcTemplate.update(
                 """
@@ -182,6 +183,7 @@ public class PostRepository {
         );
     }
 
+    @Transactional
     public int updateImage(
             long postId,
             byte[] imageData,

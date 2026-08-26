@@ -29,7 +29,6 @@ public class App {
 
         migration.migrate();
 
-
         DispatcherServlet dispatcherServlet =
                 new DispatcherServlet(springContext);
 

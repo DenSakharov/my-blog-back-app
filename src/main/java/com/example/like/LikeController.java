@@ -24,9 +24,4 @@ public class LikeController {
     public LikeResponse getLikes(@PathVariable long postId) {
         return likeService.getLikes(postId);
     }
-
-//    @PostMapping
-//    public long incrementLikes(@PathVariable long postId) {
-//        return likeService.incrementLikes(postId);
-//    }
 }

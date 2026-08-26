@@ -15,7 +15,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <spring.version>6.2.5</spring.version>
-    <spring.data.jdbc.version>3.4.5</spring.data.jdbc.version>
     <junit.version>5.10.2</junit.version>
   </properties>
 
@@ -50,13 +49,6 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
       <version>${spring.version}</version>
-    </dependency>
-
-    <!-- Spring Data JDBC -->
-    <dependency>
-      <groupId>org.springframework.data</groupId>
-      <artifactId>spring-data-jdbc</artifactId>
-      <version>${spring.data.jdbc.version}</version>
     </dependency>
 
     <!-- JDBC-драйвер PostgreSQL -->

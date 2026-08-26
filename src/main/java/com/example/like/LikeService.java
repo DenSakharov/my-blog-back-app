@@ -18,7 +18,7 @@ public class LikeService {
             throw new IllegalArgumentException("Invalid postId");
         }
 
-        long likesCount = likeRepository.incrementLikes(postId);
+        long likesCount = likeRepository.addLike(postId);
         return new LikeResponse(postId, likesCount);
     }
 
@@ -31,14 +31,5 @@ public class LikeService {
                 postId,
                 likeRepository.getLikesCount(postId)
         );
-    }
-
-    @Transactional
-    public long incrementLikes(long postId) {
-        if (postId <= 0) {
-            throw new IllegalArgumentException("Invalid postId");
-        }
-
-        return likeRepository.incrementLikes(postId);
     }
 }

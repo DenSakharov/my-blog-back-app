@@ -26,7 +26,7 @@ public class LikeRepository {
         return count;
     }
 
-    public long incrementLikes(long postId) {
+    public long addLike(long postId) {
         Long count = jdbcTemplate.queryForObject("""
                 UPDATE posts
                 SET likes_count = likes_count + 1

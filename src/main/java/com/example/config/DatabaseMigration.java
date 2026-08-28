@@ -17,11 +17,9 @@ public class DatabaseMigration {
 
     @PostConstruct
     public void migrate() {
-        Flyway flyway = Flyway.configure()
+        Flyway.configure()
                 .dataSource(dataSource)
-                .locations("classpath:db/migrations")
-                .load();
-
-        flyway.migrate();
+                .load()
+                .migrate();
     }
 }

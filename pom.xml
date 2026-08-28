@@ -9,6 +9,7 @@
   <groupId>com.example</groupId>
   <artifactId>my-blog-back-app</artifactId>
   <version>1.0-SNAPSHOT</version>
+  <packaging>war</packaging>
 
   <properties>
     <maven.compiler.release>21</maven.compiler.release>
@@ -56,7 +57,6 @@
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.7.5</version>
-      <scope>runtime</scope>
     </dependency>
 
     <!-- Пул соединений с БД -->
@@ -138,6 +138,16 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
+      </plugin>
+
+      <!-- War plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.4.0</version>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+        </configuration>
       </plugin>
 
       <!-- Компиляция Java -->

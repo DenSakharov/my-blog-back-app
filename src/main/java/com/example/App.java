@@ -1,7 +1,6 @@
 package com.example;
 
 import com.example.config.AppConfig;
-import com.example.config.DatabaseMigration;
 import jakarta.servlet.MultipartConfigElement;
 import org.apache.catalina.Context;
 import org.apache.catalina.Wrapper;
@@ -23,11 +22,6 @@ public class App {
         springContext.register(AppConfig.class);
         springContext.setServletContext(context.getServletContext());
         springContext.refresh();
-
-        DatabaseMigration migration =
-                springContext.getBean(DatabaseMigration.class);
-
-        migration.migrate();
 
         DispatcherServlet dispatcherServlet =
                 new DispatcherServlet(springContext);

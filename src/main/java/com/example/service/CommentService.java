@@ -19,7 +19,8 @@ public class CommentService {
 
     public CommentService(
             CommentDao commentDao,
-            PostDao postDao, CommentMapper commentMapper
+            PostDao postDao,
+            CommentMapper commentMapper
     ) {
         this.commentDao = commentDao;
         this.postDao = postDao;
@@ -82,6 +83,14 @@ public class CommentService {
 
     @Transactional
     public void delete(long postId, long commentId) {
+        if (postId <= 0) {
+            throw new IllegalArgumentException("Invalid postId");
+        }
+
+        if (commentId <= 0) {
+            throw new IllegalArgumentException("Invalid commentId");
+        }
+
         postDao.findById(postId);
         commentDao.delete(postId, commentId);
     }

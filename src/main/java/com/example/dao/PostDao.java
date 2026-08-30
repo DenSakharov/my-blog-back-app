@@ -1,13 +1,14 @@
 package com.example.dao;
 
-import com.example.dto.post.PostCreateRequest;
 import com.example.dto.post.PostImage;
 import com.example.model.Post;
-import com.example.dto.post.PostUpdateRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,20 +22,34 @@ public class PostDao {
     }
 
     @Transactional
-    public Post save(PostCreateRequest request) {
-        Long postId = jdbcTemplate.queryForObject(
-                """
-                INSERT INTO posts (title, text)
-                VALUES (?, ?)
-                RETURNING id
-                """,
-                Long.class,
-                request.title(),
-                request.text()
-        );
+    public Post save(Post post) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        if (request.tags() != null) {
-            for (String tag : request.tags()) {
+        jdbcTemplate.update(connection -> {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                    INSERT INTO posts (title, text)
+                    VALUES (?, ?)
+                    """,
+                    new String[]{"id"}
+            );
+
+            statement.setString(1, post.title());
+            statement.setString(2, post.text());
+
+            return statement;
+        }, keyHolder);
+
+        Number key = keyHolder.getKey();
+
+        if (key == null) {
+            throw new IllegalStateException("Post id was not generated");
+        }
+
+        long postId = key.longValue();
+
+        if (post.tags() != null) {
+            for (String tag : post.tags()) {
                 jdbcTemplate.update(
                         """
                         INSERT INTO post_tags (post_id, tag)
@@ -114,15 +129,15 @@ public class PostDao {
     }
 
     @Transactional
-    public Post update(long id, PostUpdateRequest request) {
+    public Post update(long id, Post post) {
         int updatedRows = jdbcTemplate.update(
                 """
                 UPDATE posts
                 SET title = ?, text = ?
                 WHERE id = ?
                 """,
-                request.title(),
-                request.text(),
+                post.title(),
+                post.text(),
                 id
         );
 
@@ -135,9 +150,9 @@ public class PostDao {
                 id
         );
 
-        List<String> tags = request.tags() == null
+        List<String> tags = post.tags() == null
                 ? List.of()
-                : request.tags();
+                : post.tags();
 
         for (String tag : tags) {
             jdbcTemplate.update(

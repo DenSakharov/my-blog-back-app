@@ -98,6 +98,13 @@
     </dependency>
 
     <dependency>
+      <groupId>net.datafaker</groupId>
+      <artifactId>datafaker</artifactId>
+      <version>2.4.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>2.3.232</version>

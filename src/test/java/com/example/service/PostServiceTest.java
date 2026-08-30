@@ -37,7 +37,7 @@ class PostServiceTest {
         );
 
         var post = new Post(
-                1L,
+                0L,
                 "Заголовок",
                 "Текст",
                 List.of("java"),
@@ -48,14 +48,14 @@ class PostServiceTest {
 
         var response = mock(PostResponse.class);
 
-        when(postDao.save(request)).thenReturn(post);
+        when(postDao.save(post)).thenReturn(post);
         when(postMapper.toResponse(post)).thenReturn(response);
 
         var result = postService.create(request);
 
         assertSame(response, result);
 
-        verify(postDao).save(request);
+        verify(postDao).save(post);
         verify(postMapper).toResponse(post);
     }
 
@@ -105,7 +105,7 @@ class PostServiceTest {
 
         var response = mock(PostResponse.class);
 
-        when(postDao.update(eq(1L), any(PostUpdateRequest.class)))
+        when(postDao.update(eq(1L), any(Post.class)))
                 .thenReturn(post);
         when(postMapper.toResponse(post)).thenReturn(response);
 
@@ -142,7 +142,7 @@ class PostServiceTest {
                 null
         );
 
-        when(postDao.update(eq(1L), any(PostUpdateRequest.class)))
+        when(postDao.update(eq(1L), any(Post.class)))
                 .thenReturn(post);
 
         when(postMapper.toResponse(post))

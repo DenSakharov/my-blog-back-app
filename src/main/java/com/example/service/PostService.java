@@ -26,6 +26,10 @@ public class PostService {
 
     @Transactional
     public PostResponse create(PostCreateRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Request is required");
+        }
+
         if (request.title() == null || request.title().isBlank()) {
             throw new IllegalArgumentException("Title is required");
         }
@@ -38,8 +42,19 @@ public class PostService {
             throw new IllegalArgumentException("Tags are required");
         }
 
-        Post post = postDao.save(request);
-        return postMapper.toResponse(post);
+        Post postRequest = new Post(
+                0L,
+                request.title(),
+                request.text(),
+                request.tags(),
+                0L,
+                0L,
+                null
+        );
+
+        Post savedPost = postDao.save(postRequest);
+
+        return postMapper.toResponse(savedPost);
     }
 
     public PostListResponse getPosts(
@@ -91,14 +106,24 @@ public class PostService {
                 ? List.of()
                 : request.tags();
 
-        PostUpdateRequest updateRequest = new PostUpdateRequest(
+        PostUpdateRequest request1updateRequest = new PostUpdateRequest(
                 request.id(),
                 request.title(),
                 request.text(),
                 tags
         );
 
-        Post post = postDao.update(id, updateRequest);
+        Post updatePost = new Post(
+                request.id(),
+                request.title(),
+                request.text(),
+                tags,
+                0L,
+                0L,
+                null
+        );
+
+        Post post = postDao.update(id, updatePost);
         return postMapper.toResponse(post);
     }
 

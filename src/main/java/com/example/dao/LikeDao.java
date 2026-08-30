@@ -13,11 +13,15 @@ public class LikeDao {
     }
 
     public long getLikesCount(long postId) {
-        Long count = jdbcTemplate.queryForObject("""
+        Long count = jdbcTemplate.queryForObject(
+                """
                 SELECT likes_count
                 FROM posts
                 WHERE id = ?
-                """, Long.class, postId);
+                """,
+                Long.class,
+                postId
+        );
 
         if (count == null) {
             throw new IllegalArgumentException("Post not found: " + postId);
@@ -27,17 +31,19 @@ public class LikeDao {
     }
 
     public long addLike(long postId) {
-        Long count = jdbcTemplate.queryForObject("""
+        int updatedRows = jdbcTemplate.update(
+                """
                 UPDATE posts
                 SET likes_count = likes_count + 1
                 WHERE id = ?
-                RETURNING likes_count
-                """, Long.class, postId);
+                """,
+                postId
+        );
 
-        if (count == null) {
+        if (updatedRows == 0) {
             throw new IllegalArgumentException("Post not found: " + postId);
         }
 
-        return count;
+        return getLikesCount(postId);
     }
 }

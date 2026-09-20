@@ -1,0 +1,3 @@
+ALTER TABLE comments
+DROP COLUMN IF EXISTS author,
+    DROP COLUMN IF EXISTS created_at;

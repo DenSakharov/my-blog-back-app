@@ -1,0 +1,5 @@
+ALTER TABLE posts
+    ADD COLUMN IF NOT EXISTS image_data BYTEA;
+
+ALTER TABLE posts
+    ADD COLUMN IF NOT EXISTS image_content_type VARCHAR(100);

@@ -6,10 +6,12 @@ import com.example.dto.comment.CommentRequest;
 import com.example.dto.comment.CommentResponse;
 import com.example.mapper.CommentMapper;
 import com.example.model.Comment;
+import com.example.model.Post;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -49,40 +51,6 @@ class CommentServiceTest {
     }
 
     @Test
-    void create_shouldRejectNullText() {
-        var request = new CommentRequest(null, null, 1L);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.create(1L, request)
-        );
-
-        verifyNoInteractions(postDao, commentDao, commentMapper);
-    }
-
-    @Test
-    void create_shouldRejectBlankText() {
-        var request = new CommentRequest(null, "   ", 1L);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.create(1L, request)
-        );
-
-        verifyNoInteractions(postDao, commentDao, commentMapper);
-    }
-
-    @Test
-    void create_shouldRejectNullRequest() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.create(1L, null)
-        );
-
-        verifyNoInteractions(postDao, commentDao, commentMapper);
-    }
-
-    @Test
     void getByPostId_shouldReturnComments() {
         var comment = new Comment(10L, "Комментарий", 1L);
         var response = new CommentResponse(10L, "Комментарий", 1L);
@@ -114,11 +82,36 @@ class CommentServiceTest {
 
     @Test
     void getById_shouldReturnComment() {
-        var comment = new Comment(10L, "Комментарий", 1L);
-        var response = new CommentResponse(10L, "Комментарий", 1L);
+        var post = new Post(
+                1L,
+                "Заголовок",
+                "Текст",
+                List.of(),
+                0L,
+                0L,
+                null
+        );
 
-        when(commentDao.findById(1L, 10L)).thenReturn(comment);
-        when(commentMapper.toResponse(comment)).thenReturn(response);
+        var comment = new Comment(
+                10L,
+                "Комментарий",
+                1L
+        );
+
+        var response = new CommentResponse(
+                10L,
+                "Комментарий",
+                1L
+        );
+
+        when(postDao.findById(1L))
+                .thenReturn(Optional.of(post));
+
+        when(commentDao.findById(1L, 10L))
+                .thenReturn(Optional.of(comment));
+
+        when(commentMapper.toResponse(comment))
+                .thenReturn(response);
 
         var result = commentService.getById(1L, 10L);
 
@@ -162,28 +155,6 @@ class CommentServiceTest {
     }
 
     @Test
-    void update_shouldRejectNullText() {
-        var request = new CommentRequest(1L, null, 1L);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.update(1L, 1L, request)
-        );
-
-        verifyNoInteractions(postDao, commentDao, commentMapper);
-    }
-
-    @Test
-    void update_shouldRejectNullRequest() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.update(1L, 1L, null)
-        );
-
-        verifyNoInteractions(postDao, commentDao, commentMapper);
-    }
-
-    @Test
     void delete_shouldNotCallDaoForInvalidPostId() {
         assertThrows(
                 IllegalArgumentException.class,
@@ -198,18 +169,6 @@ class CommentServiceTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> commentService.update(0, 1, request)
-        );
-
-        verifyNoInteractions(postDao, commentDao);
-    }
-
-    @Test
-    void update_shouldRejectBlankText() {
-        var request = new CommentRequest(1L, " ", 1L);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.update(1, 1, request)
         );
 
         verifyNoInteractions(postDao, commentDao);

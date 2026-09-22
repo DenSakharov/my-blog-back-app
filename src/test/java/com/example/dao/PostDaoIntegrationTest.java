@@ -10,6 +10,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -63,7 +64,12 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
 
         Post saved = postDao.save(postSaveModel);
 
-        Post found = postDao.findById(saved.id());
+        Optional<Post> foundOptional =
+                postDao.findById(saved.id());
+
+        assertTrue(foundOptional.isPresent());
+
+        Post found = foundOptional.get();
 
         assertEquals(saved.id(), found.id());
         assertEquals("Java", found.title());

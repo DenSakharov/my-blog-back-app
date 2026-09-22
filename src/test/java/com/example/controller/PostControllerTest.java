@@ -114,15 +114,15 @@ class PostControllerTest {
     }
 
     @Test
-    void createPost_shouldReturn400ForMalformedJson() throws Exception {
+    void createPost_shouldReturn400ForBlankText() throws Exception {
         mockMvc.perform(post("/api/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                              "title": "Java",
-                              "text":
-                            }
-                            """))
+                        {
+                          "title": "Java",
+                          "text": ""
+                        }
+                        """))
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(postService);

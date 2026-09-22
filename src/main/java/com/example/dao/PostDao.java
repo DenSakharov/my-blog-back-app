@@ -1,6 +1,7 @@
 package com.example.dao;
 
 import com.example.dto.post.PostImage;
+import com.example.exception.PostNotFoundException;
 import com.example.model.Post;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -61,7 +62,8 @@ public class PostDao {
             }
         }
 
-        return findById(postId);
+        return findById(postId)
+                .orElseThrow(() -> new PostNotFoundException(postId));
     }
 
     public List<Post> findPosts(
@@ -165,11 +167,12 @@ public class PostDao {
             );
         }
 
-        return findById(id);
+        return findById(id)
+                .orElseThrow(() -> new PostNotFoundException(id));
     }
 
-    public Post findById(long id) {
-        return jdbcTemplate.queryForObject(
+    public Optional<Post> findById(long id) {
+        return jdbcTemplate.query(
                 """
                 SELECT id, title, text,
                        likes_count, comments_count,
@@ -179,7 +182,7 @@ public class PostDao {
                 """,
                 (rs, rowNum) -> mapPost(rs),
                 id
-        );
+        ).stream().findFirst();
     }
 
     @Transactional

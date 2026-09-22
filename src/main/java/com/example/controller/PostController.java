@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.dto.post.*;
 import com.example.service.PostService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,11 @@ public class PostController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PostResponse createPost(@RequestBody PostCreateRequest request) {
+    public PostResponse createPost(
+            @Valid @RequestBody PostCreateRequest request
+    ) {
         return postService.create(request);
     }
-
     @GetMapping
     public PostListResponse getPosts(
             @RequestParam(defaultValue = "") String search,

@@ -10,6 +10,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -59,11 +60,20 @@ class CommentDaoIntegrationTest extends AbstractDaoIntegrationTest {
     void findById_shouldReturnComment() {
         Comment created = commentDao.create(postId, "Test comment");
 
-        Comment found = commentDao.findById(postId, created.id());
+        Comment found = commentDao.findById(postId, created.id())
+                .orElseThrow();
 
         assertEquals(created.id(), found.id());
         assertEquals("Test comment", found.text());
         assertEquals(postId, found.postId());
+    }
+
+    @Test
+    void findById_shouldReturnEmptyWhenCommentDoesNotExist() {
+        Optional<Comment> result =
+                commentDao.findById(postId, 999999L);
+
+        assertTrue(result.isEmpty());
     }
 
     @Test
@@ -130,9 +140,8 @@ class CommentDaoIntegrationTest extends AbstractDaoIntegrationTest {
                 Long.class
         );
 
-        assertThrows(
-                Exception.class,
-                () -> commentDao.findById(anotherPostId, created.id())
+        assertTrue(
+                commentDao.findById(anotherPostId, created.id()).isEmpty()
         );
     }
 }

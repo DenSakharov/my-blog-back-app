@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -73,8 +74,11 @@ class PostServiceTest {
 
         var response = mock(PostResponse.class);
 
-        when(postDao.findById(1L)).thenReturn(post);
-        when(postMapper.toResponse(post)).thenReturn(response);
+        when(postDao.findById(1L))
+                .thenReturn(Optional.of(post));
+
+        when(postMapper.toResponse(post))
+                .thenReturn(response);
 
         var result = postService.getById(1L);
 

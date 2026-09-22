@@ -155,7 +155,7 @@ class CommentControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "text":
+                                  "text": ""
                                 }
                                 """))
                 .andExpect(status().isBadRequest());

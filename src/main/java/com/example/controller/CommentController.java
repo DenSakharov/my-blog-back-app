@@ -3,6 +3,9 @@ package com.example.controller;
 import com.example.dto.comment.CommentRequest;
 import com.example.dto.comment.CommentResponse;
 import com.example.service.CommentService;
+import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +15,9 @@ import java.util.List;
 @RequestMapping("/api/posts/{postId}/comments")
 @CrossOrigin(origins = "http://localhost")
 public class CommentController {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(CommentController.class);
 
     private final CommentService commentService;
 
@@ -23,6 +29,8 @@ public class CommentController {
     public List<CommentResponse> getComments(
             @PathVariable long postId
     ) {
+        log.debug("Getting comment: postId={}", postId);
+
         return commentService.getByPostId(postId);
     }
 
@@ -31,6 +39,8 @@ public class CommentController {
             @PathVariable long postId,
             @PathVariable long commentId
     ) {
+        log.debug("Getting comments for postId={}", postId);
+
         return commentService.getById(postId, commentId);
     }
 
@@ -38,8 +48,10 @@ public class CommentController {
     @ResponseStatus(HttpStatus.CREATED)
     public CommentResponse createComment(
             @PathVariable long postId,
-            @RequestBody CommentRequest request
+            @Valid @RequestBody CommentRequest request
     ) {
+        log.info("Creating comment for postId={}", postId);
+
         return commentService.create(postId, request);
     }
 
@@ -47,8 +59,14 @@ public class CommentController {
     public CommentResponse updateComment(
             @PathVariable long postId,
             @PathVariable long commentId,
-            @RequestBody CommentRequest request
+            @Valid @RequestBody CommentRequest request
     ) {
+        log.info(
+                "Updating comment: postId={}, commentId={}",
+                postId,
+                commentId
+        );
+
         return commentService.update(postId, commentId, request);
     }
 
@@ -58,6 +76,12 @@ public class CommentController {
             @PathVariable long postId,
             @PathVariable long commentId
     ) {
+        log.info(
+                "Deleting comment: postId={}, commentId={}",
+                postId,
+                commentId
+        );
+
         commentService.delete(postId, commentId);
     }
 }

@@ -1,6 +1,6 @@
 package com.example.dao;
 
-import com.example.exception.CommentNotFoundException;
+import com.example.exception.CommentNotFoundException.CommentNotFoundException;
 import com.example.model.Comment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;

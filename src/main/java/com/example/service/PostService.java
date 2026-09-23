@@ -2,7 +2,7 @@ package com.example.service;
 
 import com.example.dao.PostDao;
 import com.example.dto.post.*;
-import com.example.exception.PostNotFoundException;
+import com.example.exception.PostNotFoundException.PostNotFoundException;
 import com.example.mapper.PostMapper;
 import com.example.model.Post;
 import org.springframework.http.HttpStatus;

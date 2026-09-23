@@ -1,7 +1,7 @@
 package com.example.dao;
 
 import com.example.dto.post.PostImage;
-import com.example.exception.PostNotFoundException;
+import com.example.exception.PostNotFoundException.PostNotFoundException;
 import com.example.model.Post;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;

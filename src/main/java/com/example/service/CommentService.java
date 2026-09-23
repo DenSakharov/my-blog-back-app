@@ -4,7 +4,7 @@ import com.example.dao.CommentDao;
 import com.example.dto.comment.CommentRequest;
 import com.example.dto.comment.CommentResponse;
 import com.example.dao.PostDao;
-import com.example.exception.CommentNotFoundException;
+import com.example.exception.CommentNotFoundException.CommentNotFoundException;
 import com.example.mapper.CommentMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

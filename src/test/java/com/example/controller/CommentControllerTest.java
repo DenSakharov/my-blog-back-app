@@ -2,13 +2,14 @@ package com.example.controller;
 
 import com.example.dto.comment.CommentRequest;
 import com.example.dto.comment.CommentResponse;
+import com.example.exception.CommentNotFoundException.CommentNotFoundException;
 import com.example.service.CommentService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -18,20 +19,14 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@WebMvcTest(CommentController.class)
 class CommentControllerTest {
 
+    @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
     private CommentService commentService;
-
-    @BeforeEach
-    void setUp() {
-        commentService = mock(CommentService.class);
-
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(new CommentController(commentService))
-                .setControllerAdvice(new TestExceptionHandler())
-                .build();
-    }
 
     @Test
     void getComments_shouldReturn200AndJson() throws Exception {
@@ -148,7 +143,7 @@ class CommentControllerTest {
     }
 
     @Test
-    void createComment_shouldReturn400ForMalformedJson()
+    void createComment_shouldReturn400ForBlankText()
             throws Exception {
 
         mockMvc.perform(post("/api/posts/1/comments")
@@ -168,10 +163,7 @@ class CommentControllerTest {
             throws Exception {
 
         when(commentService.getById(1L, 999L))
-                .thenThrow(new ResponseStatusException(
-                        org.springframework.http.HttpStatus.NOT_FOUND,
-                        "Comment not found"
-                ));
+                .thenThrow(new CommentNotFoundException(999L));
 
         mockMvc.perform(get("/api/posts/1/comments/999"))
                 .andExpect(status().isNotFound());

@@ -6,8 +6,11 @@ import com.example.dto.post.PostResponse;
 import com.example.dto.post.PostUpdateRequest;
 import com.example.mapper.PostMapper;
 import com.example.model.Post;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,19 +18,18 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class PostServiceTest {
 
-    private PostDao postDao;
+    @Autowired
     private PostService postService;
+
+    @MockitoBean
+    private PostDao postDao;
+
+    @MockitoBean
     private PostMapper postMapper;
-
-    @BeforeEach
-    void setUp() {
-        postDao = mock(PostDao.class);
-        postMapper = mock(PostMapper.class);
-
-        postService = new PostService(postDao, postMapper);
-    }
 
     @Test
     void create_shouldCreatePost() {

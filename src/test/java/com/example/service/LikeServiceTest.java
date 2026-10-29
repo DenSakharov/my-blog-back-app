@@ -2,22 +2,24 @@ package com.example.service;
 
 import com.example.dao.LikeDao;
 import com.example.dto.like.LikeResponse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class LikeServiceTest {
 
-    private LikeDao likeDao;
+    @Autowired
     private LikeService likeService;
 
-    @BeforeEach
-    void setUp() {
-        likeDao = mock(LikeDao.class);
-        likeService = new LikeService(likeDao);
-    }
+    @MockitoBean
+    private LikeDao likeDao;
 
     @Test
     void addLike_shouldReturnUpdatedLikesCount() {

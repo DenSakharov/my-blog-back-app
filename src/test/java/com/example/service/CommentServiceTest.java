@@ -7,8 +7,11 @@ import com.example.dto.comment.CommentResponse;
 import com.example.mapper.CommentMapper;
 import com.example.model.Comment;
 import com.example.model.Post;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,21 +19,21 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class CommentServiceTest {
 
-    private CommentDao commentDao;
-    private PostDao postDao;
+    @Autowired
     private CommentService commentService;
-    private CommentMapper  commentMapper;
 
-    @BeforeEach
-    void setUp() {
-        commentDao = mock(CommentDao.class);
-        postDao = mock(PostDao.class);
-        commentMapper = mock(CommentMapper.class);
+    @MockitoBean
+    private CommentDao commentDao;
 
-        commentService = new CommentService(commentDao, postDao, commentMapper);
-    }
+    @MockitoBean
+    private PostDao postDao;
+
+    @MockitoBean
+    private CommentMapper commentMapper;
 
     @Test
     void create_shouldCreateComment() {

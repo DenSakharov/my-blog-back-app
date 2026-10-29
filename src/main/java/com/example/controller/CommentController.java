@@ -29,7 +29,7 @@ public class CommentController {
     public List<CommentResponse> getComments(
             @PathVariable long postId
     ) {
-        log.debug("Getting comment: postId={}", postId);
+        log.debug("Getting comments for postId={}", postId);
 
         return commentService.getByPostId(postId);
     }
@@ -39,7 +39,7 @@ public class CommentController {
             @PathVariable long postId,
             @PathVariable long commentId
     ) {
-        log.debug("Getting comments for postId={}", postId);
+        log.debug("Getting comment for postId={}", postId);
 
         return commentService.getById(postId, commentId);
     }

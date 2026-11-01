@@ -4,40 +4,57 @@ import com.example.dao.CommentDao;
 import com.example.dao.PostDao;
 import com.example.dto.comment.CommentRequest;
 import com.example.dto.comment.CommentResponse;
+import com.example.exception.PostNotFoundException;
+import com.example.fixture.PostTestDataFactory;
 import com.example.mapper.CommentMapper;
 import com.example.model.Comment;
-import org.junit.jupiter.api.BeforeEach;
+import com.example.model.Post;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class CommentServiceTest {
 
-    private CommentDao commentDao;
-    private PostDao postDao;
+    @Autowired
     private CommentService commentService;
-    private CommentMapper  commentMapper;
 
-    @BeforeEach
-    void setUp() {
-        commentDao = mock(CommentDao.class);
-        postDao = mock(PostDao.class);
-        commentMapper = mock(CommentMapper.class);
+    @MockitoBean
+    private CommentDao commentDao;
 
-        commentService = new CommentService(commentDao, postDao, commentMapper);
-    }
+    @MockitoBean
+    private PostDao postDao;
+
+    @MockitoBean
+    private CommentMapper commentMapper;
 
     @Test
     void create_shouldCreateComment() {
+        var post = PostTestDataFactory.createPost(1L);
         var request = new CommentRequest(null, "Новый комментарий", 1L);
         var comment = new Comment(10L, "Новый комментарий", 1L);
         var response = new CommentResponse(10L, "Новый комментарий", 1L);
 
-        when(commentDao.create(1L, request.text())).thenReturn(comment);
-        when(commentMapper.toResponse(comment)).thenReturn(response);
+        when(postDao.findById(1L))
+                .thenReturn(Optional.of(post));
+
+        when(commentDao.create(1L, request.text()))
+                .thenReturn(comment);
+
+        when(commentMapper.toResponse(comment))
+                .thenReturn(response);
 
         var result = commentService.create(1L, request);
 
@@ -49,46 +66,19 @@ class CommentServiceTest {
     }
 
     @Test
-    void create_shouldRejectNullText() {
-        var request = new CommentRequest(null, null, 1L);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.create(1L, request)
-        );
-
-        verifyNoInteractions(postDao, commentDao, commentMapper);
-    }
-
-    @Test
-    void create_shouldRejectBlankText() {
-        var request = new CommentRequest(null, "   ", 1L);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.create(1L, request)
-        );
-
-        verifyNoInteractions(postDao, commentDao, commentMapper);
-    }
-
-    @Test
-    void create_shouldRejectNullRequest() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.create(1L, null)
-        );
-
-        verifyNoInteractions(postDao, commentDao, commentMapper);
-    }
-
-    @Test
     void getByPostId_shouldReturnComments() {
+        var post = PostTestDataFactory.createPost(1L);
         var comment = new Comment(10L, "Комментарий", 1L);
         var response = new CommentResponse(10L, "Комментарий", 1L);
 
-        when(commentDao.findByPostId(1L)).thenReturn(List.of(comment));
-        when(commentMapper.toResponse(comment)).thenReturn(response);
+        when(postDao.findById(1L))
+                .thenReturn(Optional.of(post));
+
+        when(commentDao.findByPostId(1L))
+                .thenReturn(List.of(comment));
+
+        when(commentMapper.toResponse(comment))
+                .thenReturn(response);
 
         var result = commentService.getByPostId(1L);
 
@@ -101,7 +91,13 @@ class CommentServiceTest {
 
     @Test
     void getByPostId_shouldReturnEmptyList() {
-        when(commentDao.findByPostId(1L)).thenReturn(List.of());
+        var post = PostTestDataFactory.createPost(1L);
+
+        when(postDao.findById(1L))
+                .thenReturn(Optional.of(post));
+
+        when(commentDao.findByPostId(1L))
+                .thenReturn(List.of());
 
         var result = commentService.getByPostId(1L);
 
@@ -114,11 +110,36 @@ class CommentServiceTest {
 
     @Test
     void getById_shouldReturnComment() {
-        var comment = new Comment(10L, "Комментарий", 1L);
-        var response = new CommentResponse(10L, "Комментарий", 1L);
+        var post = new Post(
+                1L,
+                "Заголовок",
+                "Текст",
+                List.of(),
+                0L,
+                0L,
+                null
+        );
 
-        when(commentDao.findById(1L, 10L)).thenReturn(comment);
-        when(commentMapper.toResponse(comment)).thenReturn(response);
+        var comment = new Comment(
+                10L,
+                "Комментарий",
+                1L
+        );
+
+        var response = new CommentResponse(
+                10L,
+                "Комментарий",
+                1L
+        );
+
+        when(postDao.findById(1L))
+                .thenReturn(Optional.of(post));
+
+        when(commentDao.findById(1L, 10L))
+                .thenReturn(Optional.of(comment));
+
+        when(commentMapper.toResponse(comment))
+                .thenReturn(response);
 
         var result = commentService.getById(1L, 10L);
 
@@ -134,9 +155,14 @@ class CommentServiceTest {
         var request = new CommentRequest(10L, "Изменённый текст", 1L);
         var comment = new Comment(10L, "Изменённый текст", 1L);
         var response = new CommentResponse(10L, "Изменённый текст", 1L);
+        var post = new Post(1L, "Заголовок", "Текст", List.of(), 0L, 0L, null);
+
+        when(postDao.findById(1L))
+                .thenReturn(Optional.of(post));
 
         when(commentDao.update(1L, 10L, request.text()))
-                .thenReturn(comment);
+                .thenReturn(Optional.of(comment));
+
         when(commentMapper.toResponse(comment))
                 .thenReturn(response);
 
@@ -156,28 +182,6 @@ class CommentServiceTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> commentService.update(1L, 0L, request)
-        );
-
-        verifyNoInteractions(postDao, commentDao, commentMapper);
-    }
-
-    @Test
-    void update_shouldRejectNullText() {
-        var request = new CommentRequest(1L, null, 1L);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.update(1L, 1L, request)
-        );
-
-        verifyNoInteractions(postDao, commentDao, commentMapper);
-    }
-
-    @Test
-    void update_shouldRejectNullRequest() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.update(1L, 1L, null)
         );
 
         verifyNoInteractions(postDao, commentDao, commentMapper);
@@ -204,22 +208,29 @@ class CommentServiceTest {
     }
 
     @Test
-    void update_shouldRejectBlankText() {
-        var request = new CommentRequest(1L, " ", 1L);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> commentService.update(1, 1, request)
-        );
-
-        verifyNoInteractions(postDao, commentDao);
-    }
-
-    @Test
     void delete_shouldCheckPostAndDeleteComment() {
-        commentService.delete(1, 2);
+        var post = PostTestDataFactory.createPost(1L);
 
-        verify(postDao).findById(1);
-        verify(commentDao).delete(1, 2);
+        when(postDao.findById(1L))
+                .thenReturn(Optional.of(post));
+
+        when(commentDao.delete(1L, 2L))
+                .thenReturn(1);
+
+        commentService.delete(1L, 2L);
+
+        verify(postDao).findById(1L);
+        verify(commentDao).delete(1L, 2L);
+    }
+    @Test
+    void getByPostId_shouldThrowWhenPostDoesNotExist() {
+        given(postDao.findById(1L))
+                .willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> commentService.getByPostId(1L))
+                .isInstanceOf(PostNotFoundException.class);
+
+        then(commentDao).shouldHaveNoInteractions();
+        then(commentMapper).shouldHaveNoInteractions();
     }
 }

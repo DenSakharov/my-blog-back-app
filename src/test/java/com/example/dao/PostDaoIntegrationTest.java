@@ -1,23 +1,16 @@
 package com.example.dao;
 
-import com.example.config.TestDatabaseConfig;
 import com.example.fixture.PostTestDataFactory;
 import com.example.model.Post;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Sql(
-        scripts = "/schema.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS
-)
-@SpringJUnitConfig(TestDatabaseConfig.class)
 class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
 
     @Autowired
@@ -38,7 +31,8 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
                 null
         );
 
-        Post saved = postDao.save(postSaveModel);
+        var saved = postDao.save(postSaveModel)
+                .orElseThrow();
 
         assertNotNull(saved);
         assertTrue(saved.id() > 0);
@@ -61,12 +55,18 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
                 null
         );
 
-        Post saved = postDao.save(postSaveModel);
+        var saved = postDao.save(postSaveModel)
+                .orElseThrow();
 
-        Post found = postDao.findById(saved.id());
+        Optional<Post> result = postDao.findById(saved.id());
+
+        assertTrue(result.isPresent());
+
+        var found = result.get();
 
         assertEquals(saved.id(), found.id());
         assertEquals("Java", found.title());
+        assertEquals("Spring Framework", found.text());
         assertEquals(List.of("java", "spring"), found.tags());
     }
 
@@ -124,7 +124,8 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
 
     @Test
     void update_shouldChangePostAndTags() {
-        Post saved = postDao.save(PostTestDataFactory.createPost());
+        Post saved = postDao.save(PostTestDataFactory.createPost())
+                .orElseThrow();
 
         Post updated = postDao.update(
                 saved.id(),
@@ -137,7 +138,7 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
                         0L,
                         null
                 )
-        );
+        ).orElseThrow();
 
         assertEquals("New title", updated.title());
         assertEquals("New text", updated.text());
@@ -145,8 +146,27 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
     }
 
     @Test
+    void update_shouldReturnEmptyWhenPostDoesNotExist() {
+        Optional<Post> result = postDao.update(
+                999_999L,
+                new Post(
+                        999_999L,
+                        "Title",
+                        "Text",
+                        List.of(),
+                        0L,
+                        0L,
+                        null
+                )
+        );
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
     void delete_shouldRemovePost() {
-        Post saved = postDao.save(PostTestDataFactory.createPost());
+        Post saved = postDao.save(PostTestDataFactory.createPost())
+                .orElseThrow();
 
         postDao.delete(saved.id());
 

@@ -6,27 +6,30 @@ import com.example.dto.post.PostResponse;
 import com.example.dto.post.PostUpdateRequest;
 import com.example.mapper.PostMapper;
 import com.example.model.Post;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class PostServiceTest {
 
-    private PostDao postDao;
+    @Autowired
     private PostService postService;
+
+    @MockitoBean
+    private PostDao postDao;
+
+    @MockitoBean
     private PostMapper postMapper;
-
-    @BeforeEach
-    void setUp() {
-        postDao = mock(PostDao.class);
-        postMapper = mock(PostMapper.class);
-
-        postService = new PostService(postDao, postMapper);
-    }
 
     @Test
     void create_shouldCreatePost() {
@@ -48,7 +51,7 @@ class PostServiceTest {
 
         var response = mock(PostResponse.class);
 
-        when(postDao.save(post)).thenReturn(post);
+        when(postDao.save(post)).thenReturn(Optional.of(post));
         when(postMapper.toResponse(post)).thenReturn(response);
 
         var result = postService.create(request);
@@ -73,8 +76,11 @@ class PostServiceTest {
 
         var response = mock(PostResponse.class);
 
-        when(postDao.findById(1L)).thenReturn(post);
-        when(postMapper.toResponse(post)).thenReturn(response);
+        when(postDao.findById(1L))
+                .thenReturn(Optional.of(post));
+
+        when(postMapper.toResponse(post))
+                .thenReturn(response);
 
         var result = postService.getById(1L);
 
@@ -106,7 +112,7 @@ class PostServiceTest {
         var response = mock(PostResponse.class);
 
         when(postDao.update(eq(1L), any(Post.class)))
-                .thenReturn(post);
+                .thenReturn(Optional.of(post));
         when(postMapper.toResponse(post)).thenReturn(response);
 
         var result = postService.update(1L, request);
@@ -116,11 +122,14 @@ class PostServiceTest {
         verify(postDao).update(
                 eq(1L),
                 argThat(r ->
-                        r.title().equals("Новый заголовок") &&
+                        r.id() == 1L &&
+                                r.title().equals("Новый заголовок") &&
                                 r.text().equals("Новый текст") &&
                                 r.tags().equals(List.of("spring"))
                 )
         );
+
+        verify(postMapper).toResponse(post);
     }
 
     @Test
@@ -143,7 +152,7 @@ class PostServiceTest {
         );
 
         when(postDao.update(eq(1L), any(Post.class)))
-                .thenReturn(post);
+                .thenReturn(Optional.of(post));
 
         when(postMapper.toResponse(post))
                 .thenReturn(mock(PostResponse.class));
@@ -158,6 +167,8 @@ class PostServiceTest {
 
     @Test
     void delete_shouldDeletePost() {
+        when(postDao.delete(1L)).thenReturn(1);
+
         postService.delete(1L);
 
         verify(postDao).delete(1L);

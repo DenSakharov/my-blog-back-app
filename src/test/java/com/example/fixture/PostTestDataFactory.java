@@ -14,8 +14,12 @@ public final class PostTestDataFactory {
     }
 
     public static Post createPost() {
+        return createPost(0L);
+    }
+
+    public static Post createPost(long id) {
         return new Post(
-                0L,
+                id,
                 FAKER.book().title(),
                 FAKER.lorem().paragraph(),
                 List.of(
@@ -29,6 +33,10 @@ public final class PostTestDataFactory {
     }
 
     public static List<Post> createMany(int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("count must be non-negative");
+        }
+
         return IntStream.range(0, count)
                 .mapToObj(i -> createPost())
                 .toList();

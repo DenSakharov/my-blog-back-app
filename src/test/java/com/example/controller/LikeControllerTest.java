@@ -2,31 +2,27 @@ package com.example.controller;
 
 import com.example.dto.like.LikeResponse;
 import com.example.service.LikeService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@WebMvcTest(LikeController.class)
 class LikeControllerTest {
 
+    @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
     private LikeService likeService;
-
-    @BeforeEach
-    void setUp() {
-        likeService = mock(LikeService.class);
-
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(new LikeController(likeService))
-                .setControllerAdvice(new TestExceptionHandler())
-                .build();
-    }
 
     @Test
     void addLike_shouldReturn200AndJson() throws Exception {

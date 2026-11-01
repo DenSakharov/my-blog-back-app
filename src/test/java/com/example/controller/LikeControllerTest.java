@@ -16,7 +16,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(LikeController.class)
-@Import(TestExceptionHandler.class)
 class LikeControllerTest {
 
     @Autowired

@@ -14,8 +14,12 @@ public final class PostTestDataFactory {
     }
 
     public static Post createPost() {
+        return createPost(0L);
+    }
+
+    public static Post createPost(long id) {
         return new Post(
-                0L,
+                id,
                 FAKER.book().title(),
                 FAKER.lorem().paragraph(),
                 List.of(

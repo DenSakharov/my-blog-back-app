@@ -1,7 +1,6 @@
 package com.example.dao;
 
 import com.example.dto.post.PostImage;
-import com.example.exception.PostNotFoundException.PostNotFoundException;
 import com.example.model.Post;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -23,7 +22,7 @@ public class PostDao {
     }
 
     @Transactional
-    public Post save(Post post) {
+    public Optional<Post> save(Post post) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -62,8 +61,7 @@ public class PostDao {
             }
         }
 
-        return findById(postId)
-                .orElseThrow(() -> new PostNotFoundException(postId));
+        return findById(postId);
     }
 
     public List<Post> findPosts(
@@ -131,7 +129,7 @@ public class PostDao {
     }
 
     @Transactional
-    public Post update(long id, Post post) {
+    public Optional<Post> update(long id, Post post) {
         int updatedRows = jdbcTemplate.update(
                 """
                 UPDATE posts
@@ -144,7 +142,7 @@ public class PostDao {
         );
 
         if (updatedRows == 0) {
-            throw new IllegalArgumentException("Post not found: " + id);
+            return Optional.empty();
         }
 
         jdbcTemplate.update(
@@ -167,8 +165,7 @@ public class PostDao {
             );
         }
 
-        return findById(id)
-                .orElseThrow(() -> new PostNotFoundException(id));
+        return findById(id);
     }
 
     public Optional<Post> findById(long id) {
@@ -222,15 +219,11 @@ public class PostDao {
     }
 
     @Transactional
-    public void delete(long id) {
-        int deletedRows = jdbcTemplate.update(
+    public int delete(long id) {
+        return jdbcTemplate.update(
                 "DELETE FROM posts WHERE id = ?",
                 id
         );
-
-        if (deletedRows == 0) {
-            throw new IllegalArgumentException("Post not found: " + id);
-        }
     }
 
     private Post mapPost(

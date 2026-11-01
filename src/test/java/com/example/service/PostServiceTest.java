@@ -51,7 +51,7 @@ class PostServiceTest {
 
         var response = mock(PostResponse.class);
 
-        when(postDao.save(post)).thenReturn(post);
+        when(postDao.save(post)).thenReturn(Optional.of(post));
         when(postMapper.toResponse(post)).thenReturn(response);
 
         var result = postService.create(request);
@@ -112,7 +112,7 @@ class PostServiceTest {
         var response = mock(PostResponse.class);
 
         when(postDao.update(eq(1L), any(Post.class)))
-                .thenReturn(post);
+                .thenReturn(Optional.of(post));
         when(postMapper.toResponse(post)).thenReturn(response);
 
         var result = postService.update(1L, request);
@@ -122,11 +122,14 @@ class PostServiceTest {
         verify(postDao).update(
                 eq(1L),
                 argThat(r ->
-                        r.title().equals("Новый заголовок") &&
+                        r.id() == 1L &&
+                                r.title().equals("Новый заголовок") &&
                                 r.text().equals("Новый текст") &&
                                 r.tags().equals(List.of("spring"))
                 )
         );
+
+        verify(postMapper).toResponse(post);
     }
 
     @Test
@@ -149,7 +152,7 @@ class PostServiceTest {
         );
 
         when(postDao.update(eq(1L), any(Post.class)))
-                .thenReturn(post);
+                .thenReturn(Optional.of(post));
 
         when(postMapper.toResponse(post))
                 .thenReturn(mock(PostResponse.class));
@@ -164,6 +167,8 @@ class PostServiceTest {
 
     @Test
     void delete_shouldDeletePost() {
+        when(postDao.delete(1L)).thenReturn(1);
+
         postService.delete(1L);
 
         verify(postDao).delete(1L);

@@ -1,6 +1,5 @@
 package com.example.dao;
 
-import com.example.exception.CommentNotFoundException.CommentNotFoundException;
 import com.example.model.Comment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -75,7 +74,7 @@ public class CommentDao {
                         new IllegalStateException("Created comment was not found"));
     }
 
-    public Comment update(long postId, long commentId, String text) {
+    public Optional<Comment> update(long postId, long commentId, String text) {
         int updatedRows = jdbcTemplate.update(
                 """
                 UPDATE comments
@@ -88,17 +87,14 @@ public class CommentDao {
         );
 
         if (updatedRows == 0) {
-            throw new IllegalArgumentException(
-                    "Comment not found: id=" + commentId + ", postId=" + postId
-            );
+            return Optional.empty();
         }
 
-        return findById(postId, commentId)
-                .orElseThrow(() -> new CommentNotFoundException(commentId));
+        return findById(postId, commentId);
     }
 
-    public void delete(long postId, long commentId) {
-        int deletedRows = jdbcTemplate.update(
+    public int delete(long postId, long commentId) {
+        return jdbcTemplate.update(
                 """
                 DELETE FROM comments
                 WHERE id = ? AND post_id = ?
@@ -106,10 +102,6 @@ public class CommentDao {
                 commentId,
                 postId
         );
-
-        if (deletedRows == 0) {
-            throw new CommentNotFoundException(commentId);
-        }
     }
 
     private Comment mapRow(java.sql.ResultSet rs, int rowNum)

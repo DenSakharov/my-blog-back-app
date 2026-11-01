@@ -2,7 +2,7 @@ package com.example.controller;
 
 import com.example.dto.comment.CommentRequest;
 import com.example.dto.comment.CommentResponse;
-import com.example.exception.CommentNotFoundException.CommentNotFoundException;
+import com.example.exception.CommentNotFoundException;
 import com.example.service.CommentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

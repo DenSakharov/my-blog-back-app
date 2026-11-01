@@ -2,7 +2,7 @@ package com.example.service;
 
 import com.example.dao.PostDao;
 import com.example.dto.post.*;
-import com.example.exception.PostNotFoundException.PostNotFoundException;
+import com.example.exception.PostNotFoundException;
 import com.example.mapper.PostMapper;
 import com.example.model.Post;
 import org.springframework.http.HttpStatus;
@@ -43,7 +43,7 @@ public class PostService {
             throw new IllegalArgumentException("Tags are required");
         }
 
-        Post postRequest = new Post(
+        var postRequest = new Post(
                 0L,
                 request.title(),
                 request.text(),
@@ -53,9 +53,9 @@ public class PostService {
                 null
         );
 
-        Post savedPost = postDao.save(postRequest);
-
-        return postMapper.toResponse(savedPost);
+        return postDao.save(postRequest)
+                .map(postMapper::toResponse)
+                .orElseThrow(() -> new IllegalStateException("Post was not saved"));
     }
 
     public PostListResponse getPosts(
@@ -67,14 +67,14 @@ public class PostService {
             throw new IllegalArgumentException("Invalid pagination parameters");
         }
 
-        int total = postDao.countPosts(search);
+        var total = postDao.countPosts(search);
 
-        int lastPage = Math.max(
+        var lastPage = Math.max(
                 1,
                 (int) Math.ceil((double) total / pageSize)
         );
 
-        List<PostResponse> posts = postDao
+        var posts = postDao
                 .findPosts(search, pageNumber, pageSize)
                 .stream()
                 .map(postMapper::toResponse)
@@ -89,13 +89,21 @@ public class PostService {
     }
 
     public PostResponse getById(long id) {
-        Post post = postDao.findById(id)
+        return postDao.findById(id)
+                .map(postMapper::toResponse)
                 .orElseThrow(() -> new PostNotFoundException(id));
-        return postMapper.toResponse(post);
     }
 
     @Transactional
     public PostResponse update(long id, PostUpdateRequest request) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("Invalid id: " + id);
+        }
+
+        if (request == null) {
+            throw new IllegalArgumentException("Request is required");
+        }
+
         if (request.title() == null || request.title().isBlank()) {
             throw new IllegalArgumentException("Title is required");
         }
@@ -108,15 +116,8 @@ public class PostService {
                 ? List.of()
                 : request.tags();
 
-        PostUpdateRequest request1updateRequest = new PostUpdateRequest(
-                request.id(),
-                request.title(),
-                request.text(),
-                tags
-        );
-
-        Post updatePost = new Post(
-                request.id(),
+        var updatePost = new Post(
+                id,
                 request.title(),
                 request.text(),
                 tags,
@@ -125,8 +126,9 @@ public class PostService {
                 null
         );
 
-        Post post = postDao.update(id, updatePost);
-        return postMapper.toResponse(post);
+        return postDao.update(id, updatePost)
+                .map(postMapper::toResponse)
+                .orElseThrow(() -> new PostNotFoundException(id));
     }
 
     @Transactional
@@ -142,7 +144,7 @@ public class PostService {
         }
 
         try {
-            int updatedRows = postDao.updateImage(
+            var updatedRows = postDao.updateImage(
                     postId,
                     image.getBytes(),
                     contentType
@@ -179,6 +181,10 @@ public class PostService {
             throw new IllegalArgumentException("Invalid post id");
         }
 
-        postDao.delete(id);
+        var deletedRows = postDao.delete(id);
+
+        if (deletedRows == 0) {
+            throw new PostNotFoundException(id);
+        }
     }
 }

@@ -4,7 +4,8 @@ import com.example.dao.CommentDao;
 import com.example.dto.comment.CommentRequest;
 import com.example.dto.comment.CommentResponse;
 import com.example.dao.PostDao;
-import com.example.exception.CommentNotFoundException.CommentNotFoundException;
+import com.example.exception.CommentNotFoundException;
+import com.example.exception.PostNotFoundException;
 import com.example.mapper.CommentMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ public class CommentService {
 
         log.debug("Loading comments for postId={}", postId);
 
-        postDao.findById(postId);
+        ensurePostExists(postId);
 
         return commentDao.findByPostId(postId)
                 .stream()
@@ -57,7 +58,7 @@ public class CommentService {
                 commentId
         );
 
-        postDao.findById(postId);
+        ensurePostExists(postId);
 
         return commentMapper.toResponse(
                 commentDao.findById(postId, commentId)
@@ -74,7 +75,7 @@ public class CommentService {
 
         log.info("Creating comment for postId={}", postId);
 
-        postDao.findById(postId);
+        ensurePostExists(postId);
 
         return commentMapper.toResponse(
                 commentDao.create(postId, request.text())
@@ -94,12 +95,15 @@ public class CommentService {
         );
 
         validateIds(postId, commentId);
+        ensurePostExists(postId);
 
-        postDao.findById(postId);
+        var updatedComment = commentDao.update(
+                postId,
+                commentId,
+                request.text()
+        ).orElseThrow(() -> new CommentNotFoundException(commentId));
 
-        return commentMapper.toResponse(
-                commentDao.update(postId, commentId, request.text())
-        );
+        return commentMapper.toResponse(updatedComment);
     }
 
     @Transactional
@@ -111,9 +115,18 @@ public class CommentService {
         );
 
         validateIds(postId, commentId);
+        ensurePostExists(postId);
 
-        postDao.findById(postId);
-        commentDao.delete(postId, commentId);
+        var deletedRows = commentDao.delete(postId, commentId);
+
+        if (deletedRows == 0) {
+            throw new CommentNotFoundException(commentId);
+        }
+    }
+
+    private void ensurePostExists(long postId) {
+        postDao.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException(postId));
     }
 
     private void validateIds(long postId, long commentId) {

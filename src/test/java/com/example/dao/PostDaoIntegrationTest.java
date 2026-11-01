@@ -31,7 +31,8 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
                 null
         );
 
-        Post saved = postDao.save(postSaveModel);
+        var saved = postDao.save(postSaveModel)
+                .orElseThrow();
 
         assertNotNull(saved);
         assertTrue(saved.id() > 0);
@@ -54,17 +55,18 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
                 null
         );
 
-        Post saved = postDao.save(postSaveModel);
+        var saved = postDao.save(postSaveModel)
+                .orElseThrow();
 
-        Optional<Post> foundOptional =
-                postDao.findById(saved.id());
+        Optional<Post> result = postDao.findById(saved.id());
 
-        assertTrue(foundOptional.isPresent());
+        assertTrue(result.isPresent());
 
-        Post found = foundOptional.get();
+        var found = result.get();
 
         assertEquals(saved.id(), found.id());
         assertEquals("Java", found.title());
+        assertEquals("Spring Framework", found.text());
         assertEquals(List.of("java", "spring"), found.tags());
     }
 
@@ -122,7 +124,8 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
 
     @Test
     void update_shouldChangePostAndTags() {
-        Post saved = postDao.save(PostTestDataFactory.createPost());
+        Post saved = postDao.save(PostTestDataFactory.createPost())
+                .orElseThrow();
 
         Post updated = postDao.update(
                 saved.id(),
@@ -135,7 +138,7 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
                         0L,
                         null
                 )
-        );
+        ).orElseThrow();
 
         assertEquals("New title", updated.title());
         assertEquals("New text", updated.text());
@@ -143,8 +146,27 @@ class PostDaoIntegrationTest extends AbstractDaoIntegrationTest {
     }
 
     @Test
+    void update_shouldReturnEmptyWhenPostDoesNotExist() {
+        Optional<Post> result = postDao.update(
+                999_999L,
+                new Post(
+                        999_999L,
+                        "Title",
+                        "Text",
+                        List.of(),
+                        0L,
+                        0L,
+                        null
+                )
+        );
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
     void delete_shouldRemovePost() {
-        Post saved = postDao.save(PostTestDataFactory.createPost());
+        Post saved = postDao.save(PostTestDataFactory.createPost())
+                .orElseThrow();
 
         postDao.delete(saved.id());
 

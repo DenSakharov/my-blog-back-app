@@ -88,7 +88,7 @@ class CommentDaoIntegrationTest extends AbstractDaoIntegrationTest {
                 postId,
                 created.id(),
                 "New text"
-        );
+        ).orElseThrow();
 
         assertEquals(created.id(), updated.id());
         assertEquals("New text", updated.text());

@@ -1,82 +1,55 @@
 package com.example.exception;
 
-import com.example.exception.CommentNotFoundException.CommentNotFoundException;
-import com.example.exception.PostNotFoundException.PostNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler
+        extends ResponseEntityExceptionHandler {
 
     private static final Logger log =
             LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationException(
-            MethodArgumentNotValidException exception
-    ) {
-        String message = exception.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .findFirst()
-                .map(error -> error.getDefaultMessage())
-                .orElse("Некорректные данные");
-
-        return ResponseEntity
-                .badRequest()
-                .body(message);
-    }
-
     @ExceptionHandler(PostNotFoundException.class)
-    public ResponseEntity<String> handlePostNotFound(
-            PostNotFoundException exception
-    ) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(exception.getMessage());
+    public ProblemDetail handlePostNotFound(PostNotFoundException exception) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage()
+        );
     }
 
     @ExceptionHandler(CommentNotFoundException.class)
-    public ResponseEntity<String> handleCommentNotFound(
+    public ProblemDetail handleCommentNotFound(
             CommentNotFoundException exception
     ) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(exception.getMessage());
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage()
+        );
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgument(
+    public ProblemDetail handleIllegalArgument(
             IllegalArgumentException exception
     ) {
-        return ResponseEntity
-                .badRequest()
-                .body(exception.getMessage());
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage()
+        );
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleUnexpectedException(
-            Exception exception
-    ) {
+    public ProblemDetail handleUnexpectedException(Exception exception) {
         log.error("Unexpected server error", exception);
 
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Internal server error");
-    }
-
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<String> handleResponseStatusException(
-            ResponseStatusException exception
-    ) {
-        return ResponseEntity
-                .status(exception.getStatusCode())
-                .body(exception.getReason());
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal server error"
+        );
     }
 }

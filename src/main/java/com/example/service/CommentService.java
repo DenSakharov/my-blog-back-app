@@ -88,13 +88,14 @@ public class CommentService {
             long commentId,
             CommentRequest request
     ) {
+        validateIds(postId, commentId);
+
         log.info(
                 "Updating comment: postId={}, commentId={}",
                 postId,
                 commentId
         );
 
-        validateIds(postId, commentId);
         ensurePostExists(postId);
 
         var updatedComment = commentDao.update(
@@ -108,13 +109,14 @@ public class CommentService {
 
     @Transactional
     public void delete(long postId, long commentId) {
+        validateIds(postId, commentId);
+
         log.info(
                 "Deleting comment: postId={}, commentId={}",
                 postId,
                 commentId
         );
 
-        validateIds(postId, commentId);
         ensurePostExists(postId);
 
         var deletedRows = commentDao.delete(postId, commentId);
@@ -130,19 +132,17 @@ public class CommentService {
     }
 
     private void validateIds(long postId, long commentId) {
-        if (postId <= 0) {
-            log.warn("Invalid postId={}", postId);
-            throw new IllegalArgumentException("Invalid postId");
-        }
+        validatePostId(postId);
 
         if (commentId <= 0) {
             log.warn("Invalid commentId={}", commentId);
-            throw new IllegalArgumentException("Invalid commentId");
+            throw new IllegalArgumentException("Invalid commentId: " + commentId);
         }
     }
 
     private void validatePostId(long postId) {
         if (postId <= 0) {
+            log.warn("Invalid postId={}", postId);
             throw new IllegalArgumentException("Invalid postId: " + postId);
         }
     }

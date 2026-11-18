@@ -1,3 +1,2 @@
-ALTER TABLE comments
-DROP COLUMN IF EXISTS author,
-    DROP COLUMN IF EXISTS created_at;
+ALTER TABLE comments DROP COLUMN IF EXISTS author;
+ALTER TABLE comments DROP COLUMN IF EXISTS created_at;

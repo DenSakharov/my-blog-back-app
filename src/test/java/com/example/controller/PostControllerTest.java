@@ -4,11 +4,13 @@ import com.example.dto.post.PostCreateRequest;
 import com.example.dto.post.PostListResponse;
 import com.example.dto.post.PostResponse;
 import com.example.service.PostService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
@@ -18,22 +20,14 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@WebMvcTest(PostController.class)
 class PostControllerTest {
 
+    @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
     private PostService postService;
-
-    @BeforeEach
-    void setUp() {
-        postService = mock(PostService.class);
-
-        PostController controller = new PostController(postService);
-
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(controller)
-                .setControllerAdvice(new TestExceptionHandler())
-                .build();
-    }
 
     @Test
     void createPost_shouldReturn201AndJson() throws Exception {
@@ -114,15 +108,15 @@ class PostControllerTest {
     }
 
     @Test
-    void createPost_shouldReturn400ForMalformedJson() throws Exception {
+    void createPost_shouldReturn400ForBlankText() throws Exception {
         mockMvc.perform(post("/api/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                              "title": "Java",
-                              "text":
-                            }
-                            """))
+                        {
+                          "title": "Java",
+                          "text": ""
+                        }
+                        """))
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(postService);

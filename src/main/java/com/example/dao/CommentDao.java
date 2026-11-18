@@ -5,10 +5,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class CommentDao {
@@ -30,22 +30,21 @@ public class CommentDao {
         return jdbcTemplate.query(sql, this::mapRow, postId);
     }
 
-    public Comment findById(long postId, long commentId) {
+    public Optional<Comment> findById(long postId, long commentId) {
         String sql = """
                 SELECT id, text, post_id
                 FROM comments
                 WHERE id = ? AND post_id = ?
                 """;
 
-        return jdbcTemplate.queryForObject(
+        return jdbcTemplate.query(
                 sql,
                 this::mapRow,
                 commentId,
                 postId
-        );
+        ).stream().findFirst();
     }
 
-    @Transactional
     public Comment create(long postId, String text) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -70,11 +69,12 @@ public class CommentDao {
             throw new IllegalStateException("Comment id was not generated");
         }
 
-        return findById(postId, key.longValue());
+        return findById(postId, key.longValue())
+                .orElseThrow(() ->
+                        new IllegalStateException("Created comment was not found"));
     }
 
-    @Transactional
-    public Comment update(long postId, long commentId, String text) {
+    public Optional<Comment> update(long postId, long commentId, String text) {
         int updatedRows = jdbcTemplate.update(
                 """
                 UPDATE comments
@@ -87,22 +87,21 @@ public class CommentDao {
         );
 
         if (updatedRows == 0) {
-            throw new IllegalArgumentException(
-                    "Comment not found: id=" + commentId + ", postId=" + postId
-            );
+            return Optional.empty();
         }
 
         return findById(postId, commentId);
     }
 
-    @Transactional
-    public void delete(long postId, long commentId) {
-        String sql = """
+    public int delete(long postId, long commentId) {
+        return jdbcTemplate.update(
+                """
                 DELETE FROM comments
                 WHERE id = ? AND post_id = ?
-                """;
-
-        jdbcTemplate.update(sql, commentId, postId);
+                """,
+                commentId,
+                postId
+        );
     }
 
     private Comment mapRow(java.sql.ResultSet rs, int rowNum)

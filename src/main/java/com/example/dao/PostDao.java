@@ -22,7 +22,7 @@ public class PostDao {
     }
 
     @Transactional
-    public Post save(Post post) {
+    public Optional<Post> save(Post post) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -129,7 +129,7 @@ public class PostDao {
     }
 
     @Transactional
-    public Post update(long id, Post post) {
+    public Optional<Post> update(long id, Post post) {
         int updatedRows = jdbcTemplate.update(
                 """
                 UPDATE posts
@@ -142,7 +142,7 @@ public class PostDao {
         );
 
         if (updatedRows == 0) {
-            throw new IllegalArgumentException("Post not found: " + id);
+            return Optional.empty();
         }
 
         jdbcTemplate.update(
@@ -168,8 +168,8 @@ public class PostDao {
         return findById(id);
     }
 
-    public Post findById(long id) {
-        return jdbcTemplate.queryForObject(
+    public Optional<Post> findById(long id) {
+        return jdbcTemplate.query(
                 """
                 SELECT id, title, text,
                        likes_count, comments_count,
@@ -179,7 +179,7 @@ public class PostDao {
                 """,
                 (rs, rowNum) -> mapPost(rs),
                 id
-        );
+        ).stream().findFirst();
     }
 
     @Transactional
@@ -219,15 +219,11 @@ public class PostDao {
     }
 
     @Transactional
-    public void delete(long id) {
-        int deletedRows = jdbcTemplate.update(
+    public int delete(long id) {
+        return jdbcTemplate.update(
                 "DELETE FROM posts WHERE id = ?",
                 id
         );
-
-        if (deletedRows == 0) {
-            throw new IllegalArgumentException("Post not found: " + id);
-        }
     }
 
     private Post mapPost(

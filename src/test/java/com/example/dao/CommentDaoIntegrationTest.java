@@ -1,23 +1,16 @@
 package com.example.dao;
 
-import com.example.config.TestDatabaseConfig;
 import com.example.model.Comment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Sql(
-        scripts = "/schema.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS
-)
-@SpringJUnitConfig(TestDatabaseConfig.class)
 class CommentDaoIntegrationTest extends AbstractDaoIntegrationTest {
 
     @Autowired
@@ -59,11 +52,20 @@ class CommentDaoIntegrationTest extends AbstractDaoIntegrationTest {
     void findById_shouldReturnComment() {
         Comment created = commentDao.create(postId, "Test comment");
 
-        Comment found = commentDao.findById(postId, created.id());
+        Comment found = commentDao.findById(postId, created.id())
+                .orElseThrow();
 
         assertEquals(created.id(), found.id());
         assertEquals("Test comment", found.text());
         assertEquals(postId, found.postId());
+    }
+
+    @Test
+    void findById_shouldReturnEmptyWhenCommentDoesNotExist() {
+        Optional<Comment> result =
+                commentDao.findById(postId, 999999L);
+
+        assertTrue(result.isEmpty());
     }
 
     @Test
@@ -86,7 +88,7 @@ class CommentDaoIntegrationTest extends AbstractDaoIntegrationTest {
                 postId,
                 created.id(),
                 "New text"
-        );
+        ).orElseThrow();
 
         assertEquals(created.id(), updated.id());
         assertEquals("New text", updated.text());
@@ -130,9 +132,8 @@ class CommentDaoIntegrationTest extends AbstractDaoIntegrationTest {
                 Long.class
         );
 
-        assertThrows(
-                Exception.class,
-                () -> commentDao.findById(anotherPostId, created.id())
+        assertTrue(
+                commentDao.findById(anotherPostId, created.id()).isEmpty()
         );
     }
 }
